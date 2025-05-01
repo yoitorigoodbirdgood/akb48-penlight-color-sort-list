@@ -50,6 +50,16 @@
             box-shadow: none; /* 影をなくす */
         }
 
+         /* アクティブなソートボタンのスタイル */
+         button[onclick^="sortTable"].active-sort-button,
+         button[onclick^="sortBy"].active-sort-button {
+             background-color: #555; /* 濃いグレー */
+         }
+          button[onclick^="sortTable"].active-sort-button:hover,
+          button[onclick^="sortBy"].active-sort-button:hover {
+             background-color: #444; /* ホバーでさらに濃く */
+         }
+
 
         /* ペンライトカラーブロック表示用のスタイル */
         .color-block {
@@ -114,8 +124,8 @@
                 <th>メンバー名</th>
                 <th>カラー</th>
                 <th>ニックネーム</th>
+                 <th>期生</th>
                 <th>生年月日</th>
-                <th>期生</th>
                 <th>NAME</th>
             </tr>
         </thead>
@@ -231,6 +241,7 @@
 
         // ボタンのスタイルを初期化
         updateButtonStyles();
+        updateSortButtonStyles(); // ソートボタンのスタイルも初期化
     });
 
     // チェックボックスの状態変更を処理する関数
@@ -250,6 +261,7 @@
          currentSortOrder = order;
          // 表示を更新
          updateTableDisplay();
+         updateSortButtonStyles(); // ソートボタンのスタイルを更新
     }
 
      // 期生順でソートする関数
@@ -258,6 +270,7 @@
         currentSortOrder = 'generation';
          // 表示を更新
         updateTableDisplay();
+        updateSortButtonStyles(); // ソートボタンのスタイルを更新
     }
 
 
@@ -266,6 +279,7 @@
         currentSortOrder = 'birthday';
          // 表示を更新
         updateTableDisplay();
+        updateSortButtonStyles(); // ソートボタンのスタイルを更新
     }
 
     // 色フィルターをトグルする関数
@@ -290,6 +304,7 @@
         // 表示を更新
         updateTableDisplay();
         updateButtonStyles(); // ボタンのスタイルをリセット
+        updateSortButtonStyles(); // ソートボタンのスタイルをリセット
     }
 
     // テーブル表示を更新するメイン関数
@@ -442,8 +457,12 @@
             nicknameTd.textContent = nickname;
             tr.appendChild(nicknameTd);
 
+            // 期生 (5列目, インデックス4) - 新しい表示順
+            const kiseiTd = document.createElement('td');
+            kiseiTd.textContent = kisei;
+            tr.appendChild(kiseiTd);
 
-            // 生年月日 (5列目, インデックス4) - 新しい表示順
+            // 生年月日 (6列目, インデックス5) - 新しい表示順
             const birthdayTd = document.createElement('td');
             // 生年月日の表示を M/D(YYYY) 形式にフォーマット
             if (birthday && birthday.includes('-')) {
@@ -460,11 +479,6 @@
                  birthdayTd.textContent = birthday; // フォーマットできない場合は元のテキスト
             }
             tr.appendChild(birthdayTd);
-
-            // 期生 (6列目, インデックス5)
-            const kiseiTd = document.createElement('td');
-            kiseiTd.textContent = kisei;
-            tr.appendChild(kiseiTd);
 
             // NAME (7列目, インデックス6)
             const nameTd = document.createElement('td');
@@ -507,6 +521,47 @@
             }
         });
     }
+
+     // ソートボタンのスタイルを更新する関数 (アクティブなソートを表示)
+     function updateSortButtonStyles() {
+         // ソートボタンを選択（onclick属性で識別）
+         const sortButtons = document.querySelectorAll('button[onclick^="sortTable("], button[onclick^="sortBy"]');
+
+         sortButtons.forEach(button => {
+             // ボタンのonclick属性を取得
+             const onclickAttr = button.getAttribute('onclick');
+             let buttonSortOrder = '';
+
+             // onclick属性からソートの種類を判定
+             if (onclickAttr === "sortTable('az')") {
+                 buttonSortOrder = 'az';
+             } else if (onclickAttr === "sortTable('za')") {
+                 buttonSortOrder = 'za';
+             } else if (onclickAttr === "sortByClosestBirthday()") {
+                 buttonSortOrder = 'birthday';
+             } else if (onclickAttr === "sortByGeneration()") {
+                  buttonSortOrder = 'generation';
+             }
+              // resetFilterボタンはソートのアクティブ状態は持たない
+
+             // 現在のソート順と比較し、クラスを付け外し
+             if (currentSortOrder === buttonSortOrder) {
+                 button.classList.add('active-sort-button');
+             } else {
+                 button.classList.remove('active-sort-button');
+             }
+         });
+
+         // 全てリセットボタン（resetFilter）はactive-sort-buttonクラスを持たないので別途スタイルが必要な場合はCSSで対応
+          const resetButton = document.querySelector('button[onclick="resetFilter()"]');
+          if (currentSortOrder === 'initial') {
+              // リセット状態で特にスタイルが必要な場合はここでクラスを追加など
+              // resetButton.classList.add('active-reset');
+          } else {
+              // resetButton.classList.remove('active-reset');
+          }
+     }
+
 
 </script>
 </body>
