@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秒でわかる"AKB48メンバーペンライトカラー"ソートリスト</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%; /* 幅はコンテナに合わせる */
+            border-collapse: collapse;
+            min-width: 600px; /* 狭い画面でも最低限の幅を確保（必要に応じて調整） */
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: left;
+             white-space: nowrap; /* セル内のテキストを改行しない */
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 10px 15px;
+            color: white; /* デフォルトの文字色は白 */
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-right: 10px;
+            border-radius: 4px; /* 角を少し丸くする */
+        }
+        button:hover {
+             opacity: 0.8; /* ホバーで少し透明にする */
+        }
+        /* デフォルトのボタン（ソートボタンなど）のスタイル */
+        button:not([style]) {
+             background-color: #4CAF50;
+        }
+         button:not([style]):hover {
+             background-color: #3e8e41;
+        }
+        /* 特定の色ボタンのスタイルはインラインで指定 */
+
+        /* アクティブなフィルターボタンのスタイル（全てのカラーボタンに適用） */
+        button[onclick^="toggleColorFilter("].active-filter-button { /* カラーフィルターボタンのみを対象に */
+            border: 3px solid black; /* 黒い太枠 */
+            box-shadow: none; /* 影をなくす */
+        }
+
+
+        /* ペンライトカラーブロック表示用のスタイル */
+        .color-block {
+            display: inline-block; /* インライン要素としてテキストの横に並べる */
+            width: 1.2em; /* ブロックの幅 */
+            height: 1.2em; /* ブロックの高さ */
+            margin-left: 0.4em; /* 色名との間に少し隙間 */
+            vertical-align: middle; /* テキストと縦方向を揃える */
+            border: 1px solid #888; /* 白など明るい色でも見やすいように枠線を追加 */
+            box-sizing: border-box; /* ボーダーをサイズ内に含める */
+        }
+
+         /* 固定列のスタイル */
+         td.pin-column {
+             text-align: center;
+             width: 40px; /* 固定列の幅を調整 */
+             padding: 4px; /* パディングを調整 */
+         }
+
+         /* セパレーター行のスタイル */
+         tr.separator-row td {
+             border-top: 3px solid black; /* 上部に黒い太線 */
+             padding-top: 0; /* 上部のパディングをなくす */
+             padding-bottom: 0; /* 下部のパディングをなくす */
+             height: 3px; /* 行の高さを線の太さに合わせる */
+             background-color: #f2f2f2; /* 背景色をつけると線がより際立つ */
+         }
+
+
+        /* モバイル対応: テーブルをコンテナで囲んで横スクロール可能にする */
+        .table-container {
+            overflow-x: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>秒でわかる"AKB48メンバーペンライトカラー"ソートリスト</h1>
+
+<p>2025年春版：各ボタンで絞り込みソートができます。色は複数選択可能です（押すごとに選択/解除）。チェックしたメンバーは常に最上位に固定されます。</p>
+
+<button onclick="resetFilter()">全てリセット</button>
+<button onclick="sortByGeneration()">期生順</button>
+<button onclick="sortTable('az')">A to Z</button>
+<button onclick="sortTable('za')">Z to A</button>
+<button onclick="sortByClosestBirthday()">近い誕生日順</button><br>
+
+<button onclick="toggleColorFilter('赤')" style="background-color: #FF0000;">赤系</button>
+<button onclick="toggleColorFilter('ピンク')" style="background-color: #FF69B4; color: black;">ピンク系</button>
+<button onclick="toggleColorFilter('黄')" style="background-color: #FFFF00; color: black;">黄系</button>
+<button onclick="toggleColorFilter('緑')" style="background-color: #008000;">緑系</button>
+<button onclick="toggleColorFilter('青')" style="background-color: #0000FF;">青系</button>
+<button onclick="toggleColorFilter('紫')" style="background-color: #800080;">紫系</button>
+<button onclick="toggleColorFilter('白')" style="background-color: #EEEEEE; color: black;">白系</button>
+
+<div class="table-container">
+    <table id="memberTable">
+        <thead>
+            <tr>
+                <th class="pin-column">固定</th>
+                <th>メンバー名</th>
+                <th>カラー</th>
+                <th>ニックネーム</th>
+                <th>生年月日</th>
+                <th>期生</th>
+                <th>NAME</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div> <script>
+    // 現在適用されている色フィルターを保持するSet
+    let activeColorFilters = new Set();
+    // 固定表示されているメンバー名を保持するSet
+    let pinnedMembers = new Set();
+    // 現在のソート順を保持する変数 ('initial', 'az', 'za', 'birthday', 'generation')
+    let currentSortOrder = 'initial';
+
+    // テーブルの初期データ（HTMLから直接取得）
+    // このデータは初期表示と、initialRowsを生成するためにのみ使用
+    const rawMemberData = [
+         // メンバー名, ニックネーム, 生年月日, ペンライトカラー, 期生, アルファベット表記
+        ['岩立 沙穂', 'さっほー', '1994-10-04', '青 × 白 × 赤', '13期生', 'Iwatate Saho'],
+        ['村山 彩希', 'ゆいりー', '1997-06-15', '赤 × 黄', '13期生', 'Murayama Yuiri'],
+        ['福岡 聖菜', 'せいちゃん', '2000-08-01', '青 × 白', '15期生', 'Fukuoka Seina'],
+        ['向井地 美音', 'みーおん', '1998-01-29', '赤 × ピンク', '15期生', 'Mukaichi Mion'],
+        ['小栗 有以', 'ゆいゆい', '2001-12-26', '黄 × ピンク', 'チーム8', 'Oguri Yui'],
+        ['倉野尾 成美', 'なるちゃん', '2000-11-08', '赤 × 緑', 'チーム8', 'Kuranoo Narumi'],
+        ['坂川 陽香', 'ひゆか', '2006-10-07', '赤 × オレンジ', 'チーム8', 'Sakagawa Hiyuka'],
+        ['下尾 みう', 'みうちゃん', '2001-04-03', '白 × 紫', 'チーム8', 'Shitao Miu'],
+        ['髙橋 彩音', 'あやねちゃん', '1997-12-30', '水 × 赤', 'チーム8', 'Takahashi Ayane'],
+        ['徳永 羚海', 'れみたん', '2006-10-01', 'ピンク × 青', 'チーム8', 'Tokunaga Remi'],
+        ['永野 芹佳', 'せりちゃん', '2001-03-27', '白 × 白 × 白', 'チーム8', 'Nagano Serika'],
+        ['橋本 陽菜', 'はるぴょん', '2000-05-25', 'ピンク × 白', 'チーム8', 'Hashimoto Haruna'],
+        ['千葉 恵里', 'えりい', '2003-10-27', '黄 × 青', 'ドラフト2期', 'Chiba Erii'],
+        ['鈴木 くるみ', 'くるるん', '2004-09-02', '紫 × 白', '16期生', 'Suzuki Kurumi'],
+        ['田口 愛佳', 'まなか', '2003-12-12', '赤 × 赤', '16期生', 'Taguchi Manaka'],
+        ['長友 彩海', 'あやみん', '2001-11-02', '黄 × 水', '16期生', 'Nagatomo Ayami'],
+        ['武藤 小麟', 'おりん', '2000-07-22', '水 × 濃いピンク', '16期生', 'Muto Orin'],
+        ['山内 瑞葵', 'ずっきー', '2001-09-20', 'ピンク × 黄', '16期生', 'Yamauchi Mizuki'],
+        ['大盛 真歩', 'まほぴょん', '1999-12-05', '白 × 薄ピンク', 'ドラフト3期', 'Omori Maho'],
+        ['太田 有紀', 'ゆきたん', '2004-03-27', '水 × 紫', '17期生', 'Ota Yuki'],
+        ['佐藤 綺星', 'あいり', '2004-06-24', '赤 × 白', '17期生', 'Sato Airi'],
+        ['橋本 恵理子', 'えりちゃん', '2006-04-16', '赤 × 黄', '17期生', 'Hashimoto Eriko'],
+        ['畠山 希美', 'のんちゃん', '2008-01-25', '紫 × 青', '17期生', 'Hatakeyama Nozomi'],
+        ['平田 侑希', 'ゆき', '2002-09-03', '白 × 紫', '17期生', 'Hirata Yuki'],
+        ['布袋 百椛', 'ほてちゃん', '2004-12-01', 'ピンク × 赤', '17期生', 'Hotei Momoka'],
+        ['正鋳 真優', 'まゆうちゃん', '2005-03-01', '白 × 白', '17期生', 'Masai Mayuu'], // 修正済み
+        ['水島 美結', 'みずみん', '2003-11-12', '水 × ピンク', '17期生', 'Mizushima Miyuu'], // 修正済み
+        ['山﨑 空', 'そらら', '2004-05-13', '紫 × ピンク', '17期生', 'Yamazaki Sora'],
+        ['秋山 由奈', 'ゆなちゃん', '2005-12-12', '水 × 水', '18期生', 'Akiyama Yuna'],
+        ['新井 彩永', 'さえちゃん', '2005-10-05', '黄 × 黄', '18期生', 'Arai Sae'],
+        ['工藤 華純', 'かすみん', '2005-06-15', '赤 × 緑', '18期生', 'Kudo Kasumi'],
+        ['久保 姫菜乃', 'ひなちゃん', '2006-02-02', '濃ピンク × 薄ピンク', '18期生', 'Kubo Hinano'],
+        ['迫 由芽実', 'ゆめみん', '2006-02-05', '白 × 水', '18期生', 'Sako Yumemi'],
+        ['成田 香姫奈', 'こひ', '2004-03-03', '紫 × 黄', '18期生', 'Narita Kohina'],
+        ['八木 愛月', 'あづ', '2005-03-22', 'ピンク × 黄', '18期生', 'Yagi Aizuki'],
+        ['山口 結愛', 'ゆい', '2009-03-08', '赤 × オレンジ', '18期生', 'Yamaguchi Yui'],
+        ['伊藤 百花', 'いともも', '2003-12-06', '薄ピンク × 薄ピンク', '19期生', 'Ito Momoka'],
+        ['奥本 カイリ', 'カイリ', '2007-01-27', '水 × 青', '19期生', 'Okumoto Kairi'],
+        ['川村 結衣', 'かわゆい', '2006-06-18', '赤 × 紫', '19期生', 'Kawamura Yui'],
+        ['白鳥 沙怜', 'さりい', '2010-09-10', '濃いピンク × 白', '19期生', 'Shiratori Sari'], // 修正済み
+        ['花田 藍衣', 'めいめい', '2005-06-05', '黄 × 白', '19期生', 'Hanada Mei'],
+        ['大賀 彩姫', 'さーちゃん', '2006-05-16', '青 × 黄緑', '20期生', 'Oga Saki'],
+        ['近藤 沙樹', 'こさき', '2012-02-23', 'オレンジ × 緑', '20期生', 'Kondo Saki'],
+        ['丸山 ひなた', 'まるちゃん', '2008-07-11', '濃ピンク × 青', '20期生', 'Maruyama Hinata'],
+    ];
+
+
+    // 色名と16進数カラーコードのマッピング
+    const colorNameToHex = {
+        '赤': '#FF0000',
+        '黄': '#FFFF00',
+        'オレンジ': '#FFA500',
+        '緑': '#008000',
+        '黄緑': '#90EE90', // LightGreen
+        '青': '#0000FF',
+        '水色': '#ADD8E6', // LightBlue
+        '水': '#ADD8E6', // Map '水' to LightBlue as well
+        'ピンク': '#FFC0CB', // Pink
+        '濃いピンク': '#FF69B4', // HotPink
+        '濃ピンク': '#FF69B4', // Map '濃ピンク' to HotPink
+        '薄ピンク': '#FFB6C1', // LightPink
+        '白': '#FFFFFF',
+        '紫': '#800080' // Purple
+        // 必要に応じて他の色も追加
+    };
+
+    // 色系統とその含まれる色のマッピング
+    const colorMap = {
+        '赤': ['赤'],
+        '黄': ['黄', 'オレンジ'],
+        '緑': ['緑', '黄緑'],
+        '青': ['青', '水色', '水'],
+        'ピンク': ['ピンク', '濃いピンク', '薄ピンク', '濃いピンク', '薄ピンク', '濃ピンク', '薄ピンク'], // 表データと合わせる
+        '白': ['白'],
+        '紫': ['紫']
+    };
+
+    // 期生のソート順序を定義
+    function getGenerationSortValue(kisei) {
+        if (kisei === 'チーム8') return 1;
+        if (kisei === 'ドラフト2期') return 2;
+        if (kisei === 'ドラフト3期') return 3;
+        const match = kisei.match(/(\d+)期生/);
+        if (match && match[1]) {
+            return 100 + parseInt(match[1], 10); // 番号付き期生は100以降とする
+        }
+        return 999; // 定義されていない期生は最後に
+    }
+
+
+    // ページ読み込み時に初期表示をレンダリング
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // テーブル表示を更新
+        updateTableDisplay();
+
+        // ボタンのスタイルを初期化
+        updateButtonStyles();
+    });
+
+    // チェックボックスの状態変更を処理する関数
+    function handleCheckboxChange(memberName, checkbox) {
+        if (checkbox.checked) {
+            pinnedMembers.add(memberName);
+        } else {
+            pinnedMembers.delete(memberName);
+        }
+        // 固定メンバーリストが変更されたら表示を更新
+        updateTableDisplay();
+    }
+
+
+    function sortTable(order) {
+         // ソート順を変更
+         currentSortOrder = order;
+         // 表示を更新
+         updateTableDisplay();
+    }
+
+     // 期生順でソートする関数
+    function sortByGeneration() {
+        // ソート順を変更
+        currentSortOrder = 'generation';
+         // 表示を更新
+        updateTableDisplay();
+    }
+
+
+    function sortByClosestBirthday() {
+        // ソート順を変更
+        currentSortOrder = 'birthday';
+         // 表示を更新
+        updateTableDisplay();
+    }
+
+    // 色フィルターをトグルする関数
+    function toggleColorFilter(colorSystem) {
+        // activeColorFiltersに含まれていれば削除、含まれていなければ追加
+        if (activeColorFilters.has(colorSystem)) {
+            activeColorFilters.delete(colorSystem);
+        } else {
+            activeColorFilters.add(colorSystem);
+        }
+        // フィルター条件が変更されたら表示を更新
+        updateTableDisplay();
+        updateButtonStyles(); // ボタンのスタイルを更新
+    }
+
+     // フィルターと固定をすべて解除し、初期表示に戻す関数
+    function resetFilter() {
+        activeColorFilters.clear(); // フィルター条件をクリア
+        pinnedMembers.clear(); // 固定メンバーをクリア
+        currentSortOrder = 'initial'; // ソート順を初期状態に
+
+        // 表示を更新
+        updateTableDisplay();
+        updateButtonStyles(); // ボタンのスタイルをリセット
+    }
+
+    // テーブル表示を更新するメイン関数
+    function updateTableDisplay() {
+        const tbody = document.getElementById("memberTable").querySelector("tbody");
+        // tbodyの内容をクリア
+        tbody.innerHTML = '';
+
+        // 固定メンバーと非固定メンバーに分ける (rawMemberDataの元の順序を維持)
+        let pinnedData = [];
+        let unpinnedData = [];
+
+        // rawMemberData（元のデータ）を基に処理
+        rawMemberData.forEach(memberData => {
+             const memberName = memberData[0]; // メンバー名
+             if (pinnedMembers.has(memberName)) {
+                 pinnedData.push(memberData);
+             } else {
+                 unpinnedData.push(memberData);
+             }
+        });
+
+        // 非固定メンバーをフィルター
+        let filteredUnpinnedData = unpinnedData.filter(memberData => {
+            // activeColorFiltersが空の場合は全て表示
+            if (activeColorFilters.size === 0) {
+                return true;
+            }
+
+            const penlightColorsText = memberData[3]; // ペンライトカラー（元のテキスト）
+            const penlightColors = penlightColorsText.split(' × ').map(c => c.trim());
+
+            let isMatch = true;
+            // 選択中の *全ての* 色系統に対してチェックを行う
+            for (const filterColorSystem of activeColorFilters) {
+                const targetColors = colorMap[filterColorSystem] || []; // その系統に含まれる色リスト
+
+                // その系統に含まれる色のうち、少なくとも1つがメンバーのペンライトカラーに含まれているか？
+                let hasColorFromSystem = false;
+                for (const pColor of penlightColors) {
+                    if (targetColors.includes(pColor)) {
+                        hasColorFromSystem = true; // 1つでも含まれていればOK
+                        break; // この系統のチェックは完了
+                    }
+                }
+
+                // もし、選択中のいずれかの系統から色が見つからなかった場合、そのメンバーは条件を満たさない
+                if (!hasColorFromSystem) {
+                    isMatch = false; // 条件を満たさない
+                    break; // 他の系統をチェックする必要はない
+                }
+            }
+            return isMatch;
+        });
+
+        // フィルターされた非固定メンバーをソート
+        if (currentSortOrder === 'az') {
+             filteredUnpinnedData.sort((a, b) => a[5].toUpperCase().localeCompare(b[5].toUpperCase())); // アルファベット表記 (インデックス5) でソート
+        } else if (currentSortOrder === 'za') {
+            filteredUnpinnedData.sort((a, b) => b[5].toUpperCase().localeCompare(a[5].toUpperCase())); // アルファベット表記 (インデックス5) 逆順ソート
+        } else if (currentSortOrder === 'birthday') {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            filteredUnpinnedData.sort((a, b) => {
+                const birthdayA = a[2]; // 生年月日 (インデックス2)
+                const birthdayB = b[2]; // 生年月日 (インデックス2)
+
+                if (!birthdayA || !birthdayA.includes('-') || !birthdayB || !birthdayB.includes('-')) {
+                    return 0; // データ不備の場合は順序を変えない
+                }
+
+                const monthA = parseInt(birthdayA.substring(5, 7), 10) - 1;
+                const dateA = parseInt(birthdayA.substring(8, 10), 10);
+                const monthB = parseInt(birthdayB.substring(5, 7), 10) - 1;
+                const dateB = parseInt(birthdayB.substring(8, 10), 10);
+
+                const dateAThisYear = new Date(currentYear, monthA, dateA);
+                const dateBThisYear = new Date(currentYear, monthB, dateB);
+
+                let diffA = dateAThisYear.getTime() - now.getTime();
+                let diffB = dateBThisYear.getTime() - now.getTime();
+
+                if (diffA < 0) {
+                    dateAThisYear.setFullYear(currentYear + 1);
+                    diffA = dateAThisYear.getTime() - now.getTime();
+                }
+                if (diffB < 0) {
+                    dateBThisYear.setFullYear(currentYear + 1);
+                    diffB = dateBThisYear.getTime() - now.getTime();
+                }
+                return diffA - diffB;
+            });
+        } else if (currentSortOrder === 'generation') {
+             // 期生順でソート (インデックス4)
+             filteredUnpinnedData.sort((a, b) => getGenerationSortValue(a[4]) - getGenerationSortValue(b[4]));
+        }
+        // 'initial' の場合は rawMemberData の順序が維持される（分ける際に元の順序で処理されている）
+
+        // 表示する最終的な行データリストを作成 (固定メンバー + ソート・フィルター済み非固定メンバー)
+        const rowsToDisplay = [...pinnedData, ...filteredUnpinnedData];
+
+        // テーブルヘッダーの列数を取得（セパレーター行のcolspanに使う）
+        const tableHeader = document.getElementById("memberTable").querySelector("thead tr");
+        const numberOfColumns = tableHeader ? tableHeader.cells.length : 1; // ヘッダーがない場合は1とする
+
+        // tbodyにメンバーデータを追加
+        rowsToDisplay.forEach((memberData, index) => {
+            const memberName = memberData[0];
+            const nickname = memberData[1];
+            const birthday = memberData[2]; //YYYY-MM-DD 形式
+            const penlightColorsText = memberData[3]; // 元のテキスト
+            const kisei = memberData[4];
+            const name = memberData[5]; // アルファベット表記
+
+            const tr = document.createElement('tr');
+
+            // 固定列 (1列目, インデックス0)
+            const pinTd = document.createElement('td');
+            pinTd.classList.add('pin-column');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            // チェックボックスの状態をpinnedMembersと同期
+            if (pinnedMembers.has(memberName)) {
+                 checkbox.checked = true;
+            }
+            // onclickイベントでhandleCheckboxChangeを呼び出す
+            checkbox.onclick = () => handleCheckboxChange(memberName, checkbox);
+            pinTd.appendChild(checkbox);
+            tr.appendChild(pinTd);
+
+
+            // メンバー名 (2列目, インデックス1)
+            const memberNameTd = document.createElement('td');
+            memberNameTd.textContent = memberName;
+            tr.appendChild(memberNameTd);
+
+            // カラー (3列目, インデックス2) - 新しい表示順
+            const colorTd = document.createElement('td');
+            // ペンライトカラーの表示をレンダリング
+            const colors = penlightColorsText.split(' × ').map(c => c.trim());
+             let renderedColorsHtml = colors.map(color => {
+                 const hex = colorNameToHex[color] || '#000000';
+                 return `${color}<span class="color-block" style="background-color: ${hex};"></span>`;
+             }).join(' '); // スペースで結合
+            colorTd.innerHTML = renderedColorsHtml;
+            tr.appendChild(colorTd);
+
+            // ニックネーム (4列目, インデックス3) - 新しい表示順
+            const nicknameTd = document.createElement('td');
+            nicknameTd.textContent = nickname;
+            tr.appendChild(nicknameTd);
+
+
+            // 生年月日 (5列目, インデックス4) - 新しい表示順
+            const birthdayTd = document.createElement('td');
+            // 生年月日の表示を M/D(YYYY) 形式にフォーマット
+            if (birthday && birthday.includes('-')) {
+                 const parts = birthday.split('-');
+                 if (parts.length === 3) {
+                     const year = parts[0];
+                     const month = parseInt(parts[1], 10);
+                     const day = parseInt(parts[2], 10);
+                     birthdayTd.textContent = `${month}/${day}(${year})`;
+                 } else {
+                     birthdayTd.textContent = birthday; // フォーマットできない場合は元のテキスト
+                 }
+            } else {
+                 birthdayTd.textContent = birthday; // フォーマットできない場合は元のテキスト
+            }
+            tr.appendChild(birthdayTd);
+
+            // 期生 (6列目, インデックス5)
+            const kiseiTd = document.createElement('td');
+            kiseiTd.textContent = kisei;
+            tr.appendChild(kiseiTd);
+
+            // NAME (7列目, インデックス6)
+            const nameTd = document.createElement('td');
+            nameTd.textContent = name;
+            tr.appendChild(nameTd);
+
+
+            tbody.appendChild(tr); // tbodyに行を追加
+
+             // 固定メンバーリストの最後にセパレーター行を追加
+             if (index === pinnedData.length - 1 && filteredUnpinnedData.length > 0) {
+                 const separatorTr = document.createElement('tr');
+                 separatorTr.classList.add('separator-row');
+                 const separatorTd = document.createElement('td');
+                 separatorTd.setAttribute('colspan', numberOfColumns);
+                 separatorTr.appendChild(separatorTd);
+                 tbody.appendChild(separatorTr);
+             }
+
+        });
+    }
+
+
+    // ボタンのスタイルを更新する関数 (アクティブなフィルターを表示)
+    function updateButtonStyles() {
+        // onclick属性がtoggleColorFilterで始まるボタンを選択
+        const colorButtons = document.querySelectorAll('button[onclick^="toggleColorFilter("]');
+        colorButtons.forEach(button => {
+            // ボタンのonclick属性から色系統名を取得
+            const onclickAttr = button.getAttribute('onclick');
+            const match = onclickAttr.match(/toggleColorFilter\('([^']+)'\)/);
+            if (match && match[1]) {
+                const colorSystem = match[1];
+                // activeColorFiltersに含まれているかチェックし、クラスを付け外し
+                if (activeColorFilters.has(colorSystem)) {
+                    button.classList.add('active-filter-button');
+                } else {
+                    button.classList.remove('active-filter-button');
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>
