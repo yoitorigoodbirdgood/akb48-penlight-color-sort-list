@@ -5,10 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>秒でわかる"AKB48メンバーペンライトカラー"ソートリスト</title>
     <style>
+        /* デフォルト（ライトモード）のスタイル */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #ffffff; /* 白背景 */
+            color: #333333; /* 濃いグレーの文字色 */
+            transition: background-color 0.3s, color 0.3s; /* スムーズな切り替え */
         }
+        /* 見出し画像のスタイル */
+        #siteTitleImage {
+            display: block; /* ブロック要素として扱い、中央寄せやマージンを設定可能に */
+            max-width: 100%; /* 親要素（bodyなど）の幅を超えないようにする */
+            height: auto; /* アスペクト比を維持したまま高さを自動調整 */
+            margin: 20px auto; /* 上下にマージン、左右をautoで中央寄せ */
+        }
+
         table {
             width: 100%; /* 幅はコンテナに合わせる */
             border-collapse: collapse;
@@ -18,42 +30,45 @@
             padding: 8px;
             border: 1px solid #ccc;
             text-align: left;
-             white-space: nowrap; /* セル内のテキストを改行しない */
+            white-space: nowrap;
         }
         th {
             background-color: #f2f2f2;
         }
         button {
             padding: 10px 15px;
-            color: white; /* デフォルトの文字色は白 */
+            color: white;
             border: none;
             cursor: pointer;
             margin-top: 10px;
             margin-right: 10px;
-            border-radius: 4px; /* 角を少し丸くする */
+            border-radius: 4px;
+            transition: background-color 0.3s, opacity 0.3s, border-color 0.3s, box-shadow 0.3s, color 0.3s; /* スムーズな切り替え */
         }
         button:hover {
-             opacity: 0.8; /* ホバーで少し透明にする */
+             opacity: 0.8;
         }
-        /* デフォルトのボタン（ソートボタンなど）のスタイル */
+        /* デフォルトのボタン（ソートボタン、リセットボタン）のスタイル */
         button:not([style]) {
-             background-color: #4CAF50;
+             background-color: #4CAF50; /* 標準の緑 */
         }
          button:not([style]):hover {
-             background-color: #3e8e41;
+             background-color: #3e8e41; /* 標準の濃い緑 */
         }
-        /* 特定の色ボタンのスタイルはインラインで指定 */
+        /* 特定の色ボタンのスタイルはインラインで指定（背景色と一部の文字色） */
 
         /* アクティブなフィルターボタンのスタイル（全てのカラーボタンに適用） */
-        button[onclick^="toggleColorFilter("].active-filter-button { /* カラーフィルターボタンのみを対象に */
-            border: 3px solid black; /* 黒い太枠 */
-            box-shadow: none; /* 影をなくす */
+        button[onclick^="toggleColorFilter("].active-filter-button {
+            border: 3px solid yellow;
+            box-shadow: 0 0 8px yellow;
+             /* アクティブなカラーボタンの文字色はダークモードスタイルで制御 */
         }
 
          /* アクティブなソートボタンのスタイル */
          button[onclick^="sortTable"].active-sort-button,
          button[onclick^="sortBy"].active-sort-button {
              background-color: #555; /* 濃いグレー */
+             color: white; /* 白文字 */
          }
           button[onclick^="sortTable"].active-sort-button:hover,
           button[onclick^="sortBy"].active-sort-button:hover {
@@ -63,29 +78,29 @@
 
         /* ペンライトカラーブロック表示用のスタイル */
         .color-block {
-            display: inline-block; /* インライン要素としてテキストの横に並べる */
-            width: 1.2em; /* ブロックの幅 */
-            height: 1.2em; /* ブロックの高さ */
-            margin-left: 0.4em; /* 色名との間に少し隙間 */
-            vertical-align: middle; /* テキストと縦方向を揃える */
-            border: 1px solid #888; /* 白など明るい色でも見やすいように枠線を追加 */
-            box-sizing: border-box; /* ボーダーをサイズ内に含める */
+            display: inline-block;
+            width: 1.2em;
+            height: 1.2em;
+            margin-left: 0.4em;
+            vertical-align: middle;
+            border: 1px solid #888; /* ライトモードでの枠線 */
+            box-sizing: border-box;
         }
 
          /* 固定列のスタイル */
          td.pin-column {
              text-align: center;
-             width: 40px; /* 固定列の幅を調整 */
-             padding: 4px; /* パディングを調整 */
+             width: 40px;
+             padding: 4px;
          }
 
          /* セパレーター行のスタイル */
          tr.separator-row td {
-             border-top: 3px solid black; /* 上部に黒い太線 */
-             padding-top: 0; /* 上部のパディングをなくす */
-             padding-bottom: 0; /* 下部のパディングをなくす */
-             height: 3px; /* 行の高さを線の太さに合わせる */
-             background-color: #f2f2f2; /* 背景色をつけると線がより際立つ */
+             border-top: 3px solid black; /* ライトモードでの線 */
+             padding-top: 0;
+             padding-bottom: 0;
+             height: 3px;
+             background-color: #f2f2f2; /* ライトモードでの背景 */
          }
 
 
@@ -94,14 +109,80 @@
             overflow-x: auto;
         }
 
+        /* --- ダークモードのスタイル --- */
+        /* bodyにdark-modeクラスが付いている場合に適用 */
+        body.dark-mode {
+            background-color: #1e1e1e; /* 暗い背景 */
+            color: #eeeeee; /* 薄いグレーの文字色 */
+        }
+        body.dark-mode table {
+             border-color: #555;
+        }
+        body.dark-mode th, body.dark-mode td {
+             border-color: #555;
+        }
+        body.dark-mode th {
+            background-color: #333333; /* 少し明るい暗い背景 */
+            color: #eeeeee; /* 薄いグレーの文字色 */
+        }
+         /* デフォルトボタンのダークモードスタイル */
+        body.dark-mode button:not([style]) {
+             background-color: #444;
+             color: #eee;
+        }
+         body.dark-mode button:not([style]):hover {
+             background-color: #666;
+        }
+        /* カラーフィルターボタンのテキスト色（ダークモード） */
+        /* デフォルトは白（#eeeeee） */
+        body.dark-mode button[onclick^="toggleColorFilter("] {
+             color: #eeeeee !important; /* デフォルトの明るいテキスト */
+        }
+        /* 黄系と白系ボタンのみテキストを黒に（インラインスタイルを上書き） */
+        body.dark-mode button[onclick="toggleColorFilter('黄')"],
+        body.dark-mode button[onclick="toggleColorFilter('白')"] {
+             color: #000000 !important; /* 黒テキスト */
+        }
+
+
+         /* アクティブなフィルターボタンのスタイル（ダークモード） */
+         body.dark-mode button[onclick^="toggleColorFilter("].active-filter-button {
+             border: 3px solid yellow; /* 黄色の枠線はダークモードでも見える */
+             box-shadow: 0 0 8px yellow;
+         }
+
+          /* アクティブなソートボタンのスタイル（ダークモード） */
+          body.dark-mode button[onclick^="sortTable"].active-sort-button,
+          body.dark-mode button[onclick^="sortBy"].active-sort-button {
+              background-color: #777; /* ライトモードより少し明るいグレー */
+              color: white;
+          }
+           body.dark-mode button[onclick^="sortTable"].active-sort-button:hover,
+           body.dark-mode button[onclick^="sortBy"].active-sort-button:hover {
+              background-color: #888;
+          }
+
+        /* ペンライトカラーブロックのダークモードスタイル */
+        body.dark-mode .color-block {
+             border: 1px solid #aaaaaa; /* ライトモードより明るい枠線 */
+        }
+
+         /* セパレーター行のダークモードスタイル */
+         body.dark-mode tr.separator-row td {
+             border-top: 3px solid #aaaaaa; /* ダークモードでの線 */
+             background-color: #333333; /* ダークモードでの背景 */
+         }
+
+
     </style>
 </head>
 <body>
 
-<h1>秒でわかる"AKB48メンバーペンライトカラー"ソートリスト</h1>
+<img src="F176F162-0383-45BF-95C1-11D6CA786BFA.jpeg" alt="秒でわかるAKB48メンバーペンライトカラーソートリスト" id="siteTitleImage">
 
-<p>2025年春版：各ボタンで絞り込みソートができます。色は複数選択可能です（押すごとに選択/解除）。チェックしたメンバーは常に最上位に固定されます。</p>
+<p>2025年春版：各ボタンで絞り込みソートができます。色は複数選択可能です（押すごとに選択/解除）。チェックしたメンバーは常に最上位に固定されます。何かあれば <a href="https://x.com/goodbirdgood" target="_blank">@goodbirdgood</a> まで</p>
 
+<button onclick="toggleDarkMode()">ダークモード切り替え</button>
 <button onclick="resetFilter()">全てリセット</button>
 <button onclick="sortByGeneration()">期生順</button>
 <button onclick="sortTable('az')">A to Z</button>
@@ -236,12 +317,15 @@
 
     // ページ読み込み時に初期表示をレンダリング
     document.addEventListener('DOMContentLoaded', (event) => {
+        // 保存されているダークモード設定を読み込む
+        loadDarkModePreference();
+
         // テーブル表示を更新
         updateTableDisplay();
 
         // ボタンのスタイルを初期化
-        updateButtonStyles();
-        updateSortButtonStyles(); // ソートボタンのスタイルも初期化
+        updateButtonStyles(); // カラーフィルターボタン
+        updateSortButtonStyles(); // ソートボタン
     });
 
     // チェックボックスの状態変更を処理する関数
@@ -306,6 +390,32 @@
         updateButtonStyles(); // ボタンのスタイルをリセット
         updateSortButtonStyles(); // ソートボタンのスタイルをリセット
     }
+
+     // ダークモードを切り替える関数
+     function toggleDarkMode() {
+         const body = document.body;
+         body.classList.toggle('dark-mode'); // dark-modeクラスを付け外しする
+         // 設定をlocalStorageに保存する
+         if (body.classList.contains('dark-mode')) {
+             localStorage.setItem('darkMode', 'enabled');
+         } else {
+             localStorage.setItem('darkMode', 'disabled');
+         }
+     }
+
+     // 保存されているダークモード設定を読み込む関数
+     function loadDarkModePreference() {
+         const darkModePreference = localStorage.getItem('darkMode');
+         const body = document.body;
+         if (darkModePreference === 'enabled') {
+             body.classList.add('dark-mode');
+         } else if (darkModePreference === 'disabled') {
+             body.classList.remove('dark-mode');
+         }
+         // OSの設定に合わせる場合は 'null' の場合に prefers-color-scheme を確認するロジックを追加
+         // 今回はボタン切り替えとlocalStorage優先なので不要
+     }
+
 
     // テーブル表示を更新するメイン関数
     function updateTableDisplay() {
