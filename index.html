@@ -182,7 +182,7 @@
 
 <img src="F176F162-0383-45BF-95C1-11D6CA786BFA.jpeg" alt="秒でわかるAKB48メンバーペンライトカラーソートリスト" id="siteTitleImage">
 
-<p>2025年21期生追加版：各ボタンで絞り込みができます。色は複数選択可能です（押すごとに選択/解除）。チェックしたメンバーは常に最上位に固定されます。何かあれば <a href="https://x.com/goodbirdgood" target="_blank">@goodbirdgood</a> まで</p>
+<p>2026年・公式情報整理版：各ボタンで絞り込みができます。色は複数選択可能です（押すごとに選択/解除）。チェックしたメンバーは常に最上位に固定されます。何かあれば <a href="https://x.com/goodbirdgood" target="_blank">@goodbirdgood</a> まで</p>
 
 <!-- Control Buttons -->
 <button onclick="toggleDarkMode()">ダークモード切り替え</button>
@@ -195,7 +195,7 @@
 <!-- Graduate Filter Checkbox -->
 <span style="display: inline-block; margin-top: 10px; margin-right: 10px;">
     <input type="checkbox" id="includeGraduatesCheckbox" onchange="updateTableDisplay()">
-    <label for="includeGraduatesCheckbox">卒業生を含む</label>
+    <label for="includeGraduatesCheckbox">過去在籍・卒業生を含む</label>
 </span>
 <br>
 <!-- Color Filter Buttons -->
@@ -214,7 +214,7 @@
                 <th class="pin-column">固定</th>
                 <th>メンバー名</th>
                 <th>カラー</th>
-                <th>ニックネーム</th>
+                <th>コールネーム</th>
                  <th>期生</th>
                 <th>生年月日</th>
                 <th>NAME</th>
@@ -233,34 +233,37 @@
     let currentSortOrder = 'initial';
 
     // テーブルの初期データ
-    // メンバー名, ニックネーム, 生年月日, ペンライトカラー, 期生, アルファベット表記, 卒業フラグ(true/false)
+    // メンバー名, コールネーム, 生年月日, ペンライトカラー, 期生, アルファベット表記, 卒業フラグ(true/false)
     const rawMemberData = [
         ['岩立 沙穂', 'さっほー', '1994-10-04', '青 × 白 × 赤', '13期生', 'Iwatate Saho', false],
         ['村山 彩希', 'ゆいりー', '1997-06-15', '赤 × 黄', '13期生', 'Murayama Yuiri', true],
         ['福岡 聖菜', 'せいちゃん', '2000-08-01', '青 × 白', '15期生', 'Fukuoka Seina', false],
-        ['向井地 美音', 'みーおん', '1998-01-29', '赤 × ピンク', '15期生', 'Mukaichi Mion', false],
+        ['向井地 美音', 'みーおん', '1998-01-29', '赤 × ピンク', '15期生', 'Mukaichi Mion', true],
         ['小栗 有以', 'ゆいゆい', '2001-12-26', '黄 × ピンク', 'チーム8', 'Oguri Yui', false],
+        ['行天 優莉奈', 'ゆりな', '1999-03-14', 'ピンク × ピンク', 'チーム8', 'Gyoten Yurina', false],
         ['倉野尾 成美', 'なるちゃん', '2000-11-08', '赤 × 緑', 'チーム8', 'Kuranoo Narumi', false],
         ['坂川 陽香', 'ひゆか', '2006-10-07', '赤 × オレンジ', 'チーム8', 'Sakagawa Hiyuka', false],
         ['下尾 みう', 'みうちゃん', '2001-04-03', '白 × 紫', 'チーム8', 'Shitao Miu', false],
-        ['髙橋 彩音', 'あやねちゃん', '1997-12-30', '水 × 赤', 'チーム8', 'Takahashi Ayane', false],
+        ['髙橋 彩音', 'あやね', '1997-12-30', '水 × 赤', 'チーム8', 'Takahashi Ayane', false],
         ['徳永 羚海', 'れみたん', '2006-10-01', 'ピンク × 青', 'チーム8', 'Tokunaga Remi', false],
-        ['永野 芹佳', 'せりちゃん', '2001-03-27', '白 × 白 × 白', 'チーム8', 'Nagano Serika', false],
-        ['橋本 陽菜', 'はるぴょん', '2000-05-25', 'ピンク × 白', 'チーム8', 'Hashimoto Haruna', false],
+        ['永野 芹佳', 'せりか', '2001-03-27', '白 × 白 × 白', 'チーム8', 'Nagano Serika', false],
+        ['橋本 陽菜', 'はるpyon', '2000-05-25', 'ピンク × 白', 'チーム8', 'Hashimoto Haruna', false],
         ['千葉 恵里', 'えりい', '2003-10-27', '黄 × 青', 'ドラフト2期', 'Chiba Erii', false],
-        ['鈴木 くるみ', 'くるるん', '2004-09-02', '紫 × 白', '16期生', 'Suzuki Kurumi', false],
-        ['田口 愛佳', 'まなか', '2003-12-12', '赤 × 赤', '16期生', 'Taguchi Manaka', false],
+        ['黒須 遥香', 'はーちゃん', '2001-02-28', '黄', '16期生', 'Kurosu Haruka', false],
+        ['鈴木 くるみ', 'くるるん', '2004-09-02', '紫 × 白', '16期生', 'Suzuki Kurumi', true],
+        ['田口 愛佳', 'まなか', '2003-12-12', '赤 × 赤', '16期生', 'Taguchi Manaka', true],
         ['長友 彩海', 'あやみん', '2001-11-02', '黄 × 水', '16期生', 'Nagatomo Ayami', false],
         ['武藤 小麟', 'おりん', '2000-07-22', '水 × 濃いピンク', '16期生', 'Muto Orin', false],
         ['山内 瑞葵', 'ずっきー', '2001-09-20', 'ピンク × 黄', '16期生', 'Yamauchi Mizuki', false],
-        ['大盛 真歩', 'まほぴょん', '1999-12-05', '白 × 薄ピンク', 'ドラフト3期', 'Omori Maho', false],
+        ['山根 涼羽', 'ずんちゃん', '2000-08-11', 'ピンク × 緑', '16期生', 'Yamane Suzuha', false],
+        ['大盛 真歩', 'まほぴょん', '1999-12-05', '白 × 薄ピンク', 'ドラフト3期', 'Omori Maho', true],
         ['太田 有紀', 'ゆきたん', '2004-03-27', '水 × 紫', '17期生', 'Ota Yuki', false],
         ['佐藤 綺星', 'あいちゃん', '2004-06-24', '赤 × 白', '17期生', 'Sato Airi', false],
-        ['橋本 恵理子', 'えりちゃん', '2006-04-16', '赤 × 黄', '17期生', 'Hashimoto Eriko', false],
+        ['橋本 恵理子', 'えりこ', '2006-04-16', '赤 × 黄', '17期生', 'Hashimoto Eriko', false],
         ['畠山 希美', 'のんちゃん', '2008-01-25', '紫 × 青', '17期生', 'Hatakeyama Nozomi', false],
         ['平田 侑希', 'ゆきちゃん', '2002-09-03', '白 × 紫', '17期生', 'Hirata Yuki', false],
         ['布袋 百椛', 'ほてちゃん', '2004-12-01', 'ピンク × 赤', '17期生', 'Hotei Momoka', false],
-        ['正鋳 真優', 'まゆうちゃん', '2005-03-01', '白 × 白', '17期生', 'Masai Mayuu', false],
+        ['正鋳 真優', 'まゆう', '2005-03-01', '白 × 白', '17期生', 'Masai Mayuu', false],
         ['水島 美結', 'みずみん', '2003-11-12', '水 × ピンク', '17期生', 'Mizushima Miyuu', false],
         ['山﨑 空', 'そらら', '2004-05-13', '紫 × ピンク', '17期生', 'Yamazaki Sora', false],
         ['秋山 由奈', 'ゆなちゃん', '2005-12-12', '水 × 水', '18期生', 'Akiyama Yuna', false],
@@ -268,14 +271,14 @@
         ['工藤 華純', 'かすみん', '2005-06-15', '赤 × 緑', '18期生', 'Kudo Kasumi', false],
         ['久保 姫菜乃', 'ひなちゃん', '2006-02-02', '濃ピンク × 薄ピンク', '18期生', 'Kubo Hinano', false],
         ['迫 由芽実', 'ゆめみん', '2006-02-05', '白 × 水', '18期生', 'Sako Yumemi', false],
-        ['成田 香姫奈', 'こひ', '2004-03-03', '紫 × 黄', '18期生', 'Narita Kohina', false],
-        ['八木 愛月', 'あづ', '2005-03-22', 'ピンク × 黄', '18期生', 'Yagi Aizuki', false],
+        ['成田 香姫奈', 'こひな', '2004-03-03', '紫 × 黄', '18期生', 'Narita Kohina', false],
+        ['八木 愛月', 'あづちゃん', '2005-03-22', 'ピンク × 黄', '18期生', 'Yagi Aizuki', false],
         ['山口 結愛', 'ゆいち', '2009-03-08', '赤 × オレンジ', '18期生', 'Yamaguchi Yui', false],
-        ['伊藤 百花', 'いともも', '2003-12-06', '薄ピンク × 薄ピンク', '19期生', 'Ito Momoka', false],
+        ['伊藤 百花', 'ももか', '2003-12-06', '薄ピンク × 薄ピンク', '19期生', 'Ito Momoka', false],
         ['奥本 カイリ', 'カイリ', '2007-01-27', '水 × 青', '19期生', 'Okumoto Kairi', false],
         ['川村 結衣', 'かわゆい', '2006-06-18', '赤 × 紫', '19期生', 'Kawamura Yui', false],
-        ['白鳥 沙怜', 'さりい', '2010-09-10', '濃いピンク × 白', '19期生', 'Shiratori Sari', false],
-        ['花田 藍衣', 'めいめい', '2005-06-05', '黄 × 白', '19期生', 'Hanada Mei', false],
+        ['白鳥 沙怜', 'さりい', '2010-09-10', '濃いピンク × 白', '19期生', 'Shiratori Sari', true],
+        ['花田 藍衣', 'めいめい', '2005-06-05', '黄 × 白', '19期生', 'Hanada Mei', true],
         ['大賀 彩姫', 'さーちゃん', '2006-05-16', '青 × 黄緑', '20期生', 'Oga Saki', false],
         ['近藤 沙樹', 'こさき', '2012-02-23', 'オレンジ × 緑', '20期生', 'Kondo Saki', false],
         ['丸山 ひなた', 'まるちゃん', '2008-07-11', '濃ピンク × 青', '20期生', 'Maruyama Hinata', false],
