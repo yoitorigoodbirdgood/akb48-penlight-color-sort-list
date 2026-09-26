@@ -190,6 +190,8 @@
 <button onclick="sortByGeneration()">期生順</button>
 <button onclick="sortTable('az')">A to Z</button>
 <button onclick="sortTable('za')">Z to A</button>
+<button onclick="sortTable('kana')">五十音順</button>
+<button onclick="sortTable('kana-reverse')">逆五十音順</button>
 <button onclick="sortByClosestBirthday()">近い誕生日順</button>
 <br>
 <!-- Graduate Filter Checkbox -->
@@ -229,7 +231,7 @@
     let activeColorFilters = new Set();
     // 固定表示されているメンバー名を保持するSet
     let pinnedMembers = new Set();
-    // 現在のソート順を保持する変数 ('initial', 'az', 'za', 'birthday', 'generation')
+    // 現在のソート順を保持する変数 ('initial', 'az', 'za', 'kana', 'kana-reverse', 'birthday', 'generation')
     let currentSortOrder = 'initial';
 
     // テーブルの初期データ
@@ -472,6 +474,10 @@
              filteredUnpinnedData.sort((a, b) => a[5].toUpperCase().localeCompare(b[5].toUpperCase()));
         } else if (currentSortOrder === 'za') {
             filteredUnpinnedData.sort((a, b) => b[5].toUpperCase().localeCompare(a[5].toUpperCase()));
+        } else if (currentSortOrder === 'kana') {
+            filteredUnpinnedData.sort((a, b) => a[0].localeCompare(b[0], 'ja'));
+        } else if (currentSortOrder === 'kana-reverse') {
+            filteredUnpinnedData.sort((a, b) => b[0].localeCompare(a[0], 'ja'));
         } else if (currentSortOrder === 'birthday') {
             // ★★★ 誕生日ソートのロジックを修正 ★★★
             const now = new Date();
@@ -600,6 +606,8 @@
              let buttonSortOrder = '';
              if (onclickAttr.includes("sortTable('az')")) buttonSortOrder = 'az';
              else if (onclickAttr.includes("sortTable('za')")) buttonSortOrder = 'za';
+             else if (onclickAttr.includes("sortTable('kana')")) buttonSortOrder = 'kana';
+             else if (onclickAttr.includes("sortTable('kana-reverse')")) buttonSortOrder = 'kana-reverse';
              else if (onclickAttr.includes("sortByClosestBirthday()")) buttonSortOrder = 'birthday';
              else if (onclickAttr.includes("sortByGeneration()")) buttonSortOrder = 'generation';
              
